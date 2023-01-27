@@ -16,6 +16,7 @@ impl<T> ComponentVec for Vec<Option<T>> {
     }
 }
 
+
 impl World {
 
     fn new() -> Self {
@@ -25,27 +26,37 @@ impl World {
         }
     }
 
-    fn new_entity(&mut self) -> usize { 
-        let entity_id = self.entities_count;
-        for component_vec in self.component_vecs.iter_mut() {
-            component_vec.push_none();
-        }
-        self.entities_count += 1;
-        entity_id
+    fn new_entity(&mut self, health: Option<Health>, name: Option<Name>) {
+        self.health_components.push(health);
+        self.name_components.push(name);
     }
 
-    fn add_component_to_entity<ComponentType: 'static>(
-        &mut self,
-        entity: usize,
-        component: ComponentType,
-    ){
-        /* do stuff  */
-    }
 
 }
 
 
 
 fn main() {
+    let mut world = World::new();
+    world.new_entity(Some(Health(-10)), Some(Name("Icarus")));
+    world.new_entity(Some(Health(100)), Some(Name("Prometheus")));
+    world.new_entity(None, Some(Name("Zeus")));
+
+    let zip = world
+        .health_components
+        .iter()
+        .zip(world.name_components.iter());
     
+    let with_health_and_name = 
+        zip.filter_map(|(health,name): (&Option<Health>, &Option<Name>)| {
+            Some((health.as_ref()?, name.as_ref()?))
+        });
+
+    for (health, name) in with_health_and_name {
+        if health.0 < 0 {
+            println!("{} has perished!", name.0);
+        } else {
+            println!("{} is still healthy", name.0);
+        }
+    }
 }
